@@ -1,0 +1,33 @@
+services:
+
+  user-api:
+    container_name: 'demo-app-user-api'
+    image: maven:3.9
+    ports:
+      - '8080:8080'
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ./mvnw spring-boot:run -Dstart-class=com.app.userapi.UserApiApplication
+
+  internal-api:
+    container_name: 'demo-app-internal-api'
+    image: maven:3.9
+    ports:
+      - '8090:8080'
+    volumes:
+      - ./:/app
+    working_dir: /app
+    command: ./mvnw spring-boot:run -Dstart-class=com.app.internalapi.InternalApiApplication
+    environment:
+      - INTERNAL_API_KEY=api-key
+
+  db:
+    container_name: 'demo-app-db'
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: api_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - '5432:5432'
