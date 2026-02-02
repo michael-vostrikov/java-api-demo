@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Product content API</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+
+    <style>
+        html, body, input {
+            font-family: system-ui, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.4;
+        }
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        .endpoint-description td {
+            padding: 0.3rem;
+            vertical-align: top;
+        }
+        .endpoint-description .get-params {
+            display: inline-block;
+            padding: 0;
+            border: 0;
+            width: 6rem;
+        }
+        .endpoint-description .data, .endpoint-description .response {
+            font-family: monospace;
+            font-size: 14px;
+            line-height: 1.2;
+            width: 30rem;
+            height: 13rem;
+        }
+        .logout {
+            text-align: right;
+            padding: 0.3rem 0.6rem;
+            margin-bottom: 0.3rem;
+            border-bottom: 1px solid #a0a0a0;
+        }
+    </style>
+</head>
+<body>
+    <div class="logout">
+        <span th:text="${#authentication.name}" />
+        &nbsp;
+        <a th:href="@{/logout}">logout</a>
+    </div>
+    <div class="endpoint-description" th:each="endpointDescription: ${endpointDescriptions}">
+        <table>
+            <tr>
+                <td>
+                    <span class="method" th:text="${endpointDescription.method}"/>
+                    <span class="url" th:text="${endpointDescription.url}" /><th:block th:if="${endpointDescription.getParams} != null">?<input type="text" class="get-params" th:value="${T(com.app.userapi.helper.SimpleHttpBuilder).buildUrlQuery(endpointDescription.getParams)}" /></th:block>
+                    <br />
+
+                    <div class="tmp">
+                    <textarea class="data" th:disabled="${endpointDescription.data == null}" th:text="${T(com.app.userapi.helper.SimpleHttpBuilder).buildJson(endpointDescription.data)}"></textarea>
+                    </div>
+                </td>
+                <td>
+                    <br>
+                    <button class="send">Send</button>
+                </td>
+                <td>
+                    <span class="code"></span>
+                    <br>
+                    <textarea class="response"></textarea>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+
+    <script>
+        (function () {
+            const $ = (selector, parent) => (parent ?? document).querySelector(selector);
+            const $$ = (selector, parent) => (parent ?? document).querySelectorAll(selector);
+
+            $$('.endpoint-description .send').forEach(button => {
+              button.onclick = async (event) => {
+                const parent = event.target.closest('.endpoint-description');
+
+                const method = $('.method', parent).innerText;
+                const url = $('.url', parent).innerText;
+                console.log('parent', parent)
+                const getParams = $('.get-params', parent)?.value;
+                const data = $('.data', parent).value;
+
+                const params = {
+                  method,
+                  headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json',
+                    'X-API-Key': 'api-key',
+                  },
+                };
+
+                const csrfHeader = $('[name="_csrf_header"]').attributes['content'].value;
+                params.headers[csrfHeader] = $('[name="_csrf"]').attributes['content'].value;
+
+                if (method !== 'GET' && method !== 'DELETE') {
+                  params.body = data;
+                }
+
+                $('.code', parent).innerHTML = '';
+                $('.response', parent).value = '';
+
+                await fetch(url + (getParams ? '?' + getParams : ''), params)
+                  .then(res => {
+                    $('.code', parent).innerHTML = res.status + ' ' + res.statusText;
+                    return res.text();
+                  })
+                  .then(text => {
+                    let val;
+                    try {
+                      const json = JSON.parse(text);
+                      val = JSON.stringify(json, null, 4);
+                    } catch (error) {
+                      val = text;
+                    }
+
+                    $('.response', parent).value = val;
+                  });
+              };
+            });
+        })();
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,164 @@
+https://medium.com/@midejoseph24/building-and-deploying-a-java-crud-rest-api-with-spring-boot-hibernate-mysql-docker-docker-5b7d1847345b
+
+https://medium.com/simform-engineering/testing-spring-boot-applications-best-practices-and-frameworks-6294e1068516
+https://www.baeldung.com/spring-rest-openapi-documentation
+
+https://www.geeksforgeeks.org/advance-java/authentication-and-authorization-in-spring-boot-3-0-with-spring-security/
+https://medium.com/@ansgar.nell/spring-boot-security-step-by-step-21ea836499f8
+https://www.baeldung.com/spring-security-method-security
+https://docs.spring.io/spring-security/reference/servlet/authorization/method-security.html
+
+https://www.baeldung.com/thymeleaf-iteration
+
+https://www.trieu.cz/posts/advisory-lock-in-spring-boot-with-mysql
+https://javabulletin.substack.com/p/distributed-locking-with-postgresql
+https://medium.com/inspiredbrilliance/a-practical-guide-to-using-advisory-locks-in-your-application-7f0e7908d7e9
+https://master-spring-ter.medium.com/postgresql-advisory-locks-a-robust-alternative-to-redis-locks-87ef05d9d2d9
+
+https://devcookies.medium.com/a-complete-guide-to-lambda-expressions-in-java-0aea2e1cea42
+
+https://www.geeksforgeeks.org/advance-java/storing-postgresql-jsonb-using-spring-boot-and-jpa/
+
+https://www.baeldung.com/spring-boot-api-key-secret
+
+https://www.baeldung.com/java-jpa-transaction-locks
+https://www.geeksforgeeks.org/advance-java/enabling-transaction-locks-in-spring-data-jpa/
+
+
+
+
+
+./mvnw spring-boot:run -Dstart-class=com.app.userapi.UserApiApplication
+env INTERNAL_API_KEY='api-key' ./mvnw spring-boot:run -Dstart-class=com.app.internalapi.InternalApiApplication -Dspring-boot.run.arguments=--server.port=8090
+
+./mvnw test
+
++ add main page with UI
++ add logout
++ add api to docker
+
++ Endpoint remove constructor
++ move Endpoint to separate file
+
++ setup CORS
++ add locks
+
++ remove Query for product repository
++ use postgres
+
++ remove 'this'
+
+- check why it downloads packages every time
+
+
++ json column
++ ProductStatus
+
++ remove TODO
+. automatic recompilation (?)
+
++ remove orElseThrow(() -> new RuntimeException("Not Found"))
+
+
++- describe why locks are not FOR UPDATE
+- transaction
+- fail, UX, automatic requests, big load
+- ? multiple transactions
+
++ test locks
+
+- maybe remove LockService and use transactions
+
+- maybe rename AppUser to User
+
+
+
+use var
+remove unused imports
+use final on properties
+ENV variables
+
+
+
+
+
+2 applications (public and internal API)
+Database migrations
+Tests
+Swagger
+Authentication
+Locks to prevent parallel access
+HTML for main page
+CSRF protection
+CORS
+PostgreSQL
+Sessions in DB
+Work with JSON
+
+password 123
+
+
+Session session = entityManager.unwrap(Session.class);
+session.setDefaultReadOnly(true);
+
+
+;spring.jpa.properties.hibernate.session.flush_mode=MANUAL
+spring.jpa.properties.hibernate.flush_mode=COMMIT
+
+
+ProductChange productChange = product.getProductChange() != null ? product.getProductChange() : new ProductChange(product.getId());
+
+
+
+
+
+
+
+I decided to use locks with pg_try_advisory_lock() and not with SELECT FOR UPDATE.
+For my perspective, this way the code is more simple, we can load entity in controller and throw web.server.ResponseStatusException if not found.
+Same for custom validation and other HTTP responses.
+Service accepts loaded entity and contains only business logic.\
+
+With transactions we would need to have special application service, which we can mark as @Transactional, and which would load entity by id and throw some high-level exception if not found, which we would need to catch and convert to ResponseStatusException.
+In my opinion, it just emulates functionality of controller on more high level.\
+
+
+
+
+
+
+spring.datasource.url=jdbc:postgresql://localhost:5432/mydatabase?allowPublicKeyRetrieval=true&useSSL=false
+
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+
+import jakarta.validation.Valid;
+
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+//     @Autowired
+//     PasswordEncoder encoder;
+
+
+    environment:
+      - ANOTHER_SYSTEM_URL=https://example.com/api
+      - ANOTHER_SYSTEM_USER=user
+      - ANOTHER_SYSTEM_PASSWORD=password
+
+  internal_api:
+    container_name: 'demo-api-internal'
+    build: internal_api
+    ports:
+      - '81:80'
+    volumes:
+      - ~/.composer-docker/cache:/root/.composer/cache:delegated
+      - ./:/app
+    environment:
+      - PHP_ENABLE_XDEBUG=1
+      - PHP_IDE_CONFIG='serverName=internal_api'
+    extra_hosts:
+      - host.docker.internal:host-gateway
+
+
